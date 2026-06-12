@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  workflow_dispatch: {}
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "tests/**"
+      - "**/*.csproj"
+      - "global.json"
+      - ".github/workflows/ci.yml"
+  pull_request:
+    branches: [main]
+  # Scheduled "quality gate" run: 06:00 UTC every weekday
+  schedule:
+    - cron: "0 6 * * 1-5"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Build and test (.NET 10)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore --configuration Release
+
+      - name: Test
+        run: dotnet test --no-build --configuration Release --logger "trx;LogFileName=test-results.trx"
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: "**/*.trx"
+          if-no-files-found: ignore
