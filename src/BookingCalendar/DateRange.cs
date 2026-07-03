@@ -18,9 +18,7 @@ public static class DateRange
             throw new ArgumentException("checkOut must not be before checkIn.", nameof(checkOut));
         }
 
-        // BUG (intentional, off-by-one): adds 1, treating both endpoints as nights.
-        // The correct number of nights is the exclusive difference between the dates.
-        return checkOut.DayNumber - checkIn.DayNumber + 1;
+        return checkOut.DayNumber - checkIn.DayNumber;
     }
 
     /// <summary>
